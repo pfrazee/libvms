@@ -7,6 +7,8 @@ An API for running cryptographically auditable VMs. Part of [NodeVMS](https://np
 ### Run a VM
 
 ```js
+const {BackendVM, RPCServer} = require('libvms')
+
 // read script
 const scriptCode = `
   exports.foo = () => 'bar'
@@ -30,6 +32,8 @@ console.log('Call log URL:', backendVM.callLog.url)
 ### Connect to run commands
 
 ```js
+const {RPCClient} = require('libvms')
+
 // connect to the server
 const client = new RPCClient('ws://localhost:5555')
 await client.isReadyPromise
@@ -41,6 +45,8 @@ console.log(await client.foo()) // => 'bar'
 ### Audit the VM state
 
 ```js
+const {RPCClient, CallLog, DatArchive, BackendVM} = require('libvms')
+
 // connect to the server
 const client = new RPCClient('ws://localhost:5555')
 await client.isReadyPromise
