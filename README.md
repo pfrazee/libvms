@@ -2,6 +2,16 @@
 
 An API for running cryptographically auditable VMs. Part of [NodeVMS](https://npm.im/nodevms).
 
+## How it works
+
+LibVMS uses the Node VM to execute Javascript files. Its goal is to reduce the trust needed in the host that executes the VM. To accomplish this, it uses [an append-only ledger](https://npm.im/hypercore) to maintain a call log. The call log records the VM script, all RPC calls, and all call results. Additionally, RPC calls may be signed by the keypair of a caller. The log is then distributed on the [Dat network](https://beakerbrowser.com/docs/inside-beaker/dat-files-protocol.html); it can not be forged, and it can not be altered after distribution (alterations are trivial to detect).
+
+Additionally, LibVMS provisions a [Dat files archive](https://npm.im/hyperdrive) for the VM to store state. This files archive is distributed over the Dat network, for clients to freely read. As with the call log, the files archive is backed by an append-only ledger. All of its state changes are recorded in the call log.
+
+The security of LibVMS rests in the unforgeability of its ledgers, and the ability to fully replay the VM history. Any client can download the call log and files archive, instantiate their own copy of the VM, and replay the log to verify the results. If a replay is found to produce mismatched state, we can assume either A) the VM script has nondeterministic behaviors, or B) the host has tampered with the state of the VM. In either case, the VM is no longer trustworthy.
+
+**This is beta software** and subject to changes.
+
 ## Examples
 
 ### Run a VM
