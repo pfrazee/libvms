@@ -27,7 +27,7 @@ Currently, only debug mode authentication is implemented.
 ### Run a VM
 
 ```js
-const {BackendVM, RPCServer} = require('libvms')
+const {VM, RPCServer} = require('libvms')
 
 // the script
 const scriptCode = `
@@ -37,17 +37,17 @@ const dir = './bobs-vm-data'
 const title = 'Bobs VM'
 
 // initiate vm
-const backendVM = new BackendVM(scriptCode)
-await backendVM.deploy({dir, title})
-console.log('backend script exports:', Object.keys(backendVM.exports))
+const vm = new VM(scriptCode)
+await vm.deploy({dir, title})
+console.log('vm api exports:', Object.keys(vm.exports))
 
 // init rpc server
 var rpcServer = new RPCServer()
-rpcServer.mount('/bobs-vm', backendVM)
+rpcServer.mount('/bobs-vm', vm)
 await rpcServer.listen(5555)
 console.log('Serving at localhost:5555')
-console.log('Files URL:', backendVM.filesArchive.url)
-console.log('Call log URL:', backendVM.callLog.url)
+console.log('Files URL:', vm.filesArchive.url)
+console.log('Call log URL:', vm.callLog.url)
 ```
 
 ### Connect to run commands
@@ -66,7 +66,7 @@ console.log(await client.foo()) // => 'bar'
 ### Audit the VM state
 
 ```js
-const {RPCClient, CallLog, DatArchive, BackendVM} = require('libvms')
+const {RPCClient, CallLog, DatArchive, VM} = require('libvms')
 
 // connect to the server
 const client = new RPCClient()
@@ -80,11 +80,11 @@ const filesArchive = new DatArchive(client.backendInfo.filesArchiveUrl)
 await filesArchive.download('/')
 
 // replay the call log
-const backendVM = await BackendVM.fromCallLog(callLog, client.backendInfo, {dir: opts.dir})
+const vm = await VM.fromCallLog(callLog, client.backendInfo, {dir: opts.dir})
 
 // compare outputs (will throw on mismatch)
-await Verifier.compareLogs(callLog, backendVM.callLog)
-await Verifier.compareArchives(filesArchive, backendVM.filesArchive)
+await Verifier.compareLogs(callLog, vm.callLog)
+await Verifier.compareArchives(filesArchive, vm.filesArchive)
 ```
 
 ### Run a VM provider
@@ -134,16 +134,16 @@ console.log(await client.foo()) // => 'bar'
 const callLog = await CallLog.fetch(vmInfo.callLogUrl)
 const filesArchive = new DatArchive(vmInfo.filesArchiveUrl)
 await filesArchive.download('/')
-const backendVM = await BackendVM.fromCallLog(callLog, vmInfo)
-await Verifier.compareLogs(callLog, backendVM.callLog)
-await Verifier.compareArchives(filesArchive, backendVM.filesArchive)
+const vm = await VM.fromCallLog(callLog, vmInfo)
+await Verifier.compareLogs(callLog, vm.callLog)
+await Verifier.compareArchives(filesArchive, vm.filesArchive)
 ```
 
 ## API
 
 ```js
 const {
-  BackendVM,
+  VM,
   VMFactory,
   CallLog,
   DatArchive,
@@ -153,51 +153,51 @@ const {
 } = require('libvms')
 ```
 
-### BackendVM
+### VM
 
 ```js
-const {BackendVM} = require('libvms')
+const {VM} = require('libvms')
 
-// step 1. instantiate vm with a backend script
-var backendVM = new BackendVM(`exports.foo = () => 'bar'`)
+// step 1. instantiate vm with a script
+var vm = new VM(`exports.foo = () => 'bar'`)
 
 // step 2. start the files archive & call log, and eval the script
-await backendVM.deploy({
-  dir: './foo-backend-data',
+await vm.deploy({
+  dir: './foo-vm-data',
   title: 'The Foo Backend'
 })
 
 // step 3. start the RPC server
 const {RPCServer} = require('libvms')
 var server = new RPCServer()
-server.mount('/foo', backendVM)
+server.mount('/foo', vm)
 await server.listen({port: 5555})
 
 // now serving!
 
 // attributes:
-backendVM.code // backend script contents
-backendVM.exports // the `module.exports` of the backend script
-backendVM.filesArchive // the backend's DatArchive
-backendVM.callLog // the backend's CallLog
+vm.code // vm script contents
+vm.exports // the `module.exports` of the vm script
+vm.filesArchive // the vm's DatArchive
+vm.callLog // the vm's CallLog
 
 // events
-backendVM.on('ready')
-backendVM.on('close')
+vm.on('ready')
+vm.on('close')
 
 // methods
-await backendVM.executeCall({methodName, args, userId})
-await backendVM.close()
+await vm.executeCall({methodName, args, userId})
+await vm.close()
 
 // alternative instantiation: replaying a call log
-var backendVM = BackendVM.fromCallLog(callLog, assertions)
+var vm = VM.fromCallLog(callLog, assertions)
 // ^ assertions are values in the call log that need to be tested, currently:
 //   - filesArchiveUrl: the url expected for the files archive
 ```
 
 ### VMFactory
 
-The `VMFactory` is a subtype of the `BackendVM`, designed to mount other VMs.
+The `VMFactory` is a subtype of the `VM`, designed to mount other VMs.
 
 ```js
 const {VMFactory} = require('libvms')
@@ -207,7 +207,7 @@ var vmFactory = new VMFactory({maxVMs: 100})
 
 // step 2. start the factory's files archive & call log
 await vmFactory.deploy({
-  dir: './vms-backend-datas',
+  dir: './vms',
   title: 'The Foo VM Host'
 })
 
@@ -221,10 +221,10 @@ await server.listen({port: 5555})
 // now serving!
 
 // attributes:
-vmFactory.code // backend script contents
-vmFactory.exports // the `module.exports` of the backend script
-vmFactory.filesArchive // the backend's DatArchive
-vmFactory.callLog // the backend's CallLog
+vmFactory.code // vm script contents
+vmFactory.exports // the `module.exports` of the vm script
+vmFactory.filesArchive // the vm's DatArchive
+vmFactory.callLog // the vm's CallLog
 
 // methods:
 await vmFactory.provisionVM({code, title})
@@ -291,7 +291,7 @@ client.backendInfo.methods // => Array of strings, the method names
 client.backendInfo.callLogUrl // => url of the vm's call log
 client.backendInfo.filesArchiveUrl // => url of the vm's files archive
 
-// all methods exported by the backend will be attached to `client`
+// all methods exported by the vm will be attached to `client`
 await client.foo() // => 'bar'
 client.close()
 ```

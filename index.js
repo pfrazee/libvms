@@ -1,5 +1,5 @@
 module.exports = {
-  BackendVM: require('./lib/backend-vm'),
+  VM: require('./lib/vm'),
   VMFactory: require('./lib/vm-factory'),
   CallLog: require('./lib/call-log'),
   DatArchive: require('node-dat-archive'),
