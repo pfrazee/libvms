@@ -47,7 +47,6 @@ vm.on('ready')
 vm.on('close')
 
 // methods
-await vm.executeCall({methodName, args, userId})
 await vm.close()
 
 // alternative instantiation: replaying a call log
@@ -106,6 +105,11 @@ var callLog = CallLog.fetch(callLogUrl, dir) // if `dir` is falsy, will use memo
 // methods/attrs:
 callLog.length // how many entries in the log
 await callLog.list({start, end}) // list the entries. start/end optional
+await callLog.get(seq, { // get the entry at `seq`
+  wait: true, // wait for index to be downloaded
+  timeout: 0, // wait at max some milliseconds (0 means no timeout)
+  valueEncoding: 'json' | 'utf-8' | 'binary' // defaults to the feed's valueEncoding
+})
 
 // appends (used internally):
 await callLog.append(obj)

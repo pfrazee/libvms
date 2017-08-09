@@ -5,6 +5,5 @@ module.exports = {
   DatArchive: require('node-dat-archive'),
   RPCServer: require('./lib/rpc-server'),
   RPCClient: require('nodevms-client'),
-  Verifier: require('./lib/verifier'),
-  Swarm: require('./lib/swarm'),
+  Verifier: require('./lib/verifier')
 }
