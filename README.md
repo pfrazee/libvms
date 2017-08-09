@@ -4,7 +4,7 @@ An API for running cryptographically auditable VM services. Part of [NodeVMS](ht
 
 ## Overview
 
-LibVMS is a VM hosting toolset built on NodeJS. Its goal is to let users provision servers on untrusted hardware, therefore increasing the amount of computing power which can shared between acquaintances and social groups.
+LibVMS is a Javascript VM toolset built on NodeJS. Its goal is to enable users to provision servers on untrusted hardware.
 
 To accomplish this, LibVMS uses [an append-only ledger](https://npm.im/hypercore) to maintain a call log. The call log records the VM script, all RPC calls, and all call results. The log is then distributed on the [Dat network](https://beakerbrowser.com/docs/inside-beaker/dat-files-protocol.html); it can not be forged, and it can not be altered after distribution (alterations are trivial to detect).
 
