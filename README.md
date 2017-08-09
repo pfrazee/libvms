@@ -1,4 +1,4 @@
-# LibVMS (alpha, v2.0.0)
+# LibVMS (alpha, v2.0.0) [![Build Status](https://travis-ci.org/pfrazee/libvms.svg?branch=master)](https://travis-ci.org/pfrazee/libvms)
 
 An API for running cryptographically auditable VM services. Part of [NodeVMS](https://npm.im/nodevms).
 
